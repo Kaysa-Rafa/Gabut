@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Untukmu, Sayang ❤️</title>
+  <style>
+    :root{
+      --bg:#fff6f8;
+      --card:#fff;
+      --accent:#ff4d7e;
+      --muted:#8b6b7a;
+      --shadow:0 6px 20px rgba(0,0,0,0.12);
+      font-family:'Segoe UI',sans-serif;
+    }
+    body{
+      margin:0; background:var(--bg); display:flex; flex-direction:column; align-items:center; justify-content:center; min-height:100vh; padding:20px;
+      background-image:radial-gradient(circle at 10% 10%, rgba(255,77,126,0.06), transparent 10%), radial-gradient(circle at 90% 90%, rgba(255,200,220,0.06), transparent 12%);
+    }
+    .container{
+      background:#fff; border-radius:16px; box-shadow:var(--shadow); padding:20px; max-width:600px; width:100%; text-align:center; position:relative; overflow:hidden;
+    }
+    h1{color:var(--accent);}
+    textarea,input[type=text]{width:100%;padding:10px;border-radius:10px;border:1px solid #ddd;margin:5px 0;font-size:15px;}
+    input[type=color]{margin:5px 0;}
+    button{padding:10px 16px;border:none;border-radius:10px;cursor:pointer;font-weight:bold;margin:5px;}
+    .btn-primary{background:var(--accent);color:#fff;}
+    .btn-secondary{background:#fff;color:var(--accent);border:1px solid var(--accent);}
+    .hearts{position:absolute;inset:0;pointer-events:none;overflow:hidden;}
+    .heart{position:absolute;width:20px;height:20px;background:var(--accent);transform:rotate(45deg);animation:float 4s linear infinite;}
+    .heart::before,.heart::after{content:'';position:absolute;width:20px;height:20px;background:var(--accent);border-radius:50%;}
+    .heart::before{top:-10px;left:0;}
+    .heart::after{left:-10px;top:0;}
+    @keyframes float{
+      0%{transform:translateY(0) rotate(45deg);opacity:1;}
+      100%{transform:translateY(-600px) rotate(45deg);opacity:0;}
+    }
+    #confettiCanvas{position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;}
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Untukmu, Acill ❤️<br> Happy Anniversary ke 3 Sayang</h1>
+    <p>Tulis pesan cintamu dan kirim kejutan!</p>
+    <input type="text" id="toName" placeholder="Nama panggilan" value="Acill">
+    <textarea id="msgInput">Hai Acill, terima kasih sudah ada untukku. Aku cinta kamu 💖</textarea>
+    <input type="color" id="accent" value="#ff4d7e">
+    <div>
+      <button class="btn-primary" id="sendBtn">Kirim Kejutan 💌</button>
+      <button class="btn-secondary" id="printBtn">Cetak / Simpan PDF</button>
+      <button class="btn-secondary" id="resetBtn">Reset</button>
+    </div>
+    <div id="preview" style="margin-top:20px;font-size:18px;color:#6b2f3e;font-weight:500;">Halo sayang, kamu spesial untukku 💕</div>
+    <div class="hearts" id="hearts"></div>
+    <canvas id="confettiCanvas"></canvas>
+  </div>
+
+  <script>
+    const msgInput=document.getElementById('msgInput');
+    const toName=document.getElementById('toName');
+    const preview=document.getElementById('preview');
+    const accent=document.getElementById('accent');
+    const hearts=document.getElementById('hearts');
+    const canvas=document.getElementById('confettiCanvas');
+    const ctx=canvas.getContext('2d');
+
+    function resizeCanvas(){canvas.width=canvas.clientWidth;canvas.height=canvas.clientHeight;}
+    window.addEventListener('resize',resizeCanvas);resizeCanvas();
+
+    accent.addEventListener('input',()=>{document.documentElement.style.setProperty('--accent',accent.value);});
+    function updatePreview(){preview.innerHTML=`Untuk ${toName.value},<br>${msgInput.value.replace(/\n/g,'<br>')}`;}
+    msgInput.addEventListener('input',updatePreview);
+    toName.addEventListener('input',updatePreview);
+    updatePreview();
+
+    function spawnHeart(){
+      const heart=document.createElement('div');heart.className='heart';
+      heart.style.left=Math.random()*100+'%';heart.style.bottom='0';heart.style.background=accent.value;
+      hearts.appendChild(heart);
+      setTimeout(()=>heart.remove(),4000);
+    }
+    setInterval(spawnHeart,800);
+
+    let confetti=[];
+    function randomColor(){const colors=['#ff4d7e','#ffb3c7','#ffd1e1','#ff8fb3','#ff6f9a'];return colors[Math.floor(Math.random()*colors.length)];}
+    function createConfetti(){
+      for(let i=0;i<150;i++){
+        confetti.push({x:Math.random()*canvas.width,y:Math.random()*canvas.height,vx:(Math.random()-0.5)*3,vy:Math.random()*3+2,size:Math.random()*6+2,color:randomColor()});
+      }
+    }
+    function drawConfetti(){
+      ctx.clearRect(0,0,canvas.width,canvas.height);
+      confetti.forEach(p=>{
+        p.x+=p.vx;p.y+=p.vy;if(p.y>canvas.height)p.y=0;if(p.x>canvas.width)p.x=0;if(p.x<0)p.x=canvas.width;
+        ctx.fillStyle=p.color;ctx.beginPath();ctx.arc(p.x,p.y,p.size,0,Math.PI*2);ctx.fill();
+      });
+      requestAnimationFrame(drawConfetti);
+    }
+    drawConfetti();
+
+    let audioCtx;
+    function playTone(){
+      audioCtx=new(window.AudioContext||window.webkitAudioContext)();
+      const o=audioCtx.createOscillator();const g=audioCtx.createGain();o.connect(g);g.connect(audioCtx.destination);
+      o.type='sine';o.frequency.setValueAtTime(440,audioCtx.currentTime);
+      g.gain.setValueAtTime(0.1,audioCtx.currentTime);
+      o.start();o.stop(audioCtx.currentTime+1);
+    }
+
+    document.getElementById('sendBtn').addEventListener('click',()=>{
+      createConfetti();playTone();alert('Pesan cintamu dikirim ke '+toName.value+' 💕');
+    });
+
+    document.getElementById('resetBtn').addEventListener('click',()=>{
+      toName.value='Acill';msgInput.value='Hai Sayang, terima kasih sudah ada untukku. Aku cinta kamu 💖';accent.value='#ff4d7e';document.documentElement.style.setProperty('--accent','#ff4d7e');updatePreview();
+    });
+
+    document.getElementById('printBtn').addEventListener('click',()=>{window.print();});
+  </script>
+</body>
+</html>
